@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v10/manifest.json",
+    "dbt_version": "1.7.0",
+    "generated_at": "2024-01-15T10:00:00.000000Z",
+    "invocation_id": "sample-invocation-id",
+    "env": {}
+  },
+  "nodes": {
+    "model.jaffle_shop.stg_orders": {
+      "unique_id": "model.jaffle_shop.stg_orders",
+      "package_name": "jaffle_shop",
+      "resource_type": "model",
+      "name": "stg_orders",
+      "description": "Staged orders from the raw orders source table.",
+      "original_file_path": "models/staging/stg_orders.sql",
+      "schema": "staging",
+      "database": "ANALYTICS",
+      "config": { "materialized": "view" },
+      "depends_on": { "nodes": ["source.jaffle_shop.jaffle_shop.orders"] },
+      "columns": {
+        "order_id": { "name": "order_id", "description": "Primary key for orders.", "data_type": "VARCHAR" },
+        "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
+        "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
+        "status": { "name": "status", "description": "", "data_type": "VARCHAR" }
+      }
+    },
+    "model.jaffle_shop.fct_orders": {
+      "unique_id": "model.jaffle_shop.fct_orders",
+      "package_name": "jaffle_shop",
+      "resource_type": "model",
+      "name": "fct_orders",
+      "description": "",
+      "original_file_path": "models/marts/fct_orders.sql",
+      "schema": "marts",
+      "database": "ANALYTICS",
+      "config": { "materialized": "table" },
+      "depends_on": { "nodes": ["model.jaffle_shop.stg_orders", "model.jaffle_shop.dim_customers"] },
+      "columns": {
+        "order_id": { "name": "order_id", "description": "", "data_type": "VARCHAR" },
+        "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
+        "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
+        "amount": { "name": "amount", "description": "", "data_type": "NUMBER(18,2)" },
+        "status": { "name": "status", "description": "", "data_type": "VARCHAR" },
+        "is_returned": { "name": "is_returned", "description": "", "data_type": "BOOLEAN" }
+      }
+    },
+    "model.jaffle_shop.dim_customers": {
+      "unique_id": "model.jaffle_shop.dim_customers",
+      "package_name": "jaffle_shop",
+      "resource_type": "model",
+      "name": "dim_customers",
+      "description": "",
+      "original_file_path": "models/marts/dim_customers.sql",
+      "schema": "marts",
+      "database": "ANALYTICS",
+      "config": { "materialized": "table" },
+      "depends_on": { "nodes": ["model.jaffle_shop.stg_customers"] },
+      "columns": {
+        "customer_id": { "name": "customer_id", "description": "Primary key.", "data_type": "VARCHAR" },
+        "first_name": { "name": "first_name", "description": "", "data_type": "VARCHAR" },
+        "email": { "name": "email", "description": "", "data_type": "VARCHAR" },
+        "lifetime_value": { "name": "lifetime_value", "description": "", "data_type": "NUMBER(18,2)" },
+        "customer_segment": { "name": "customer_segment", "description": "", "data_type": "VARCHAR" }
+      }
+    },
+    "model.jaffle_shop.stg_customers": {
+      "unique_id": "model.jaffle_shop.stg_customers",
+      "package_name": "jaffle_shop",
+      "resource_type": "model",
+      "name": "stg_customers",
+      "description": "Staged customer records from raw CRM data.",
+      "original_file_path": "models/staging/stg_customers.sql",
+      "schema": "staging",
+      "database": "ANALYTICS",
+      "config": { "materialized": "view" },
+      "depends_on": { "nodes": [] },
+      "columns": {
+        "customer_id": { "name": "customer_id", "description": "Unique customer identifier.", "data_type": "VARCHAR" },
+        "first_name": { "name": "first_name", "description": "Customer first name.", "data_type": "VARCHAR" },
+        "last_name": { "name": "last_name", "description": "Customer last name.", "data_type": "VARCHAR" },
+        "email": { "name": "email", "description": "Customer email address.", "data_type": "VARCHAR" }
+      }
+    },
+    "model.jaffle_shop.rpt_monthly_revenue": {
+      "unique_id": "model.jaffle_shop.rpt_monthly_revenue",
+      "package_name": "jaffle_shop",
+      "resource_type": "model",
+      "name": "rpt_monthly_revenue",
+      "description": "",
+      "original_file_path": "models/reporting/rpt_monthly_revenue.sql",
+      "schema": "reporting",
+      "database": "ANALYTICS",
+      "config": { "materialized": "table" },
+      "depends_on": { "nodes": ["model.jaffle_shop.fct_orders"] },
+      "columns": {
+        "month": { "name": "month", "description": "", "data_type": "DATE" },
+        "total_revenue": { "name": "total_revenue", "description": "", "data_type": "NUMBER(18,2)" },
+        "order_count": { "name": "order_count", "description": "", "data_type": "NUMBER(18,0)" },
+        "new_customers": { "name": "new_customers", "description": "", "data_type": "NUMBER(18,0)" },
+        "returning_customers": { "name": "returning_customers", "description": "", "data_type": "NUMBER(18,0)" }
+      }
+    }
+  },
+  "sources": {},
+  "exposures": {},
+  "metrics": {}
+}
