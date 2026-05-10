@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse the GitHub push event payload\nconst payload = $input.first().json;\n\n// Extract only .sql file changes from the push event\nconst commits = payload.commits || [];\nconst sqlFiles = [];\n\nfor (const commit of commits) {\n  const allFiles = [\n    ...(commit.added || []),\n    ...(commit.modified || [])\n  ];\n  for (const file of allFiles) {\n    if (file.endsWith('.sql') && file.includes('/models/')) {\n      sqlFiles.push({\n        filename: file,\n        sha: commit.id,\n        repo: payload.repository?.full_name || '',\n        branch: payload.ref?.replace('refs/heads/', '') || 'main',\n        pusher: payload.pusher?.name || 'unknown'\n      });\n    }\n  }\n}\n\nif (sqlFiles.length === 0) {\n  return [{ json: { skip: true, reason: 'No .sql model files changed in this push.' } }];\n}\n\nreturn sqlFiles.map(f => ({ json: f }));"
+        "jsCode": "// Parse the GitHub push event payload\nconst payload = $input.first().json;\n\n// Check if this is a \"Ping\" event from GitHub\nif (payload.zen) {\n  return [{ json: { skip: true, reason: 'GitHub Ping received successfully!' } }];\n}\n\nconst commits = payload.commits || [];\nconst sqlFiles = [];\n\nfor (const commit of commits) {\n  const allFiles = [\n    ...(commit.added || []),\n    ...(commit.modified || [])\n  ];\n  \n  for (const file of allFiles) {\n    // Catch any .sql file anywhere\n    if (file.toLowerCase().endsWith('.sql')) {\n      sqlFiles.push({\n        filename: file,\n        sha: commit.id,\n        repo: payload.repository?.full_name || '',\n        branch: payload.ref?.replace('refs/heads/', '') || 'main',\n        pusher: payload.pusher?.name || 'unknown'\n      });\n    }\n  }\n}\n\nif (sqlFiles.length === 0) {\n  return [{ \n    json: {\n      skip: true, \n      reason: 'No .sql files found in this push.',\n      payload_summary: {\n        has_commits: commits.length > 0,\n        repo: payload.repository?.full_name\n      }\n    } \n  }];\n}\n\nreturn sqlFiles.map(f => ({ json: f }));"
       },
       "id": "node-parse-push-event",
       "name": "Parse Push Event & Filter SQL Files",
@@ -98,36 +98,43 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o",
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "gemini-1.5-flash",
+          "mode": "list",
+          "cachedResultName": "Gemini 1.5 Flash"
+        },
         "messages": {
           "values": [
             {
-              "role": "system",
-              "content": "You are the Agentic dbt Librarian — an expert Senior Data Engineer and Business Analyst embedded in a Snowflake/dbt data stack.\n\nYour mission is to write documentation that BRIDGES THE GAP between raw SQL logic and business meaning. You do not write generic, technical-only descriptions. Every description must answer: \"Why does this column MATTER to the business?\"\n\n## Your Rules\n1. PRIMARY KEYS: Describe how this ID is used across the business — what it connects.\n2. FOREIGN KEYS: Explain what the join unlocks — what business question it answers.\n3. METRICS: State the exact business definition, including any edge cases (nulls, zeros, returns).\n4. DATES: Clarify the event this timestamp captures and its timezone.\n5. STATUS/FLAGS: List all possible values and their business meaning.\n6. PII COLUMNS: Flag with '[PII]' prefix and describe data sensitivity.\n\n## Lineage Awareness\nYou will be given upstream model descriptions. Use them to write downstream descriptions that BUILD ON the lineage — e.g., \"Inherited from stg_orders; represents the final confirmed order date after payment processing.\"\n\n## Output Format\nReturn ONLY a valid dbt schema.yml block. No explanations. No markdown prose. No code fences. Start directly with 'version: 2'.\n\nExample output:\nversion: 2\n\nmodels:\n  - name: fct_orders\n    description: \"The central fact table tracking every completed customer order...\"\n    columns:\n      - name: order_id\n        description: \"[PK] The unique identifier for each order, used to join...\""
-            },
-            {
-              "role": "user",
-              "content": "=## Model: {{ $json.modelName }}\n\n### SQL Code\n```sql\n{{ $json.sqlCode }}\n```\n\n### Upstream Model Context (Lineage)\n{{ $json.upstreamContext }}\n\n### Already Documented Columns (DO NOT overwrite these)\n```json\n{{ $json.existingColumns }}\n```\n\n### Additional Context\n- Materialization: {{ $json.materialization }}\n- Target Schema: {{ $json.schema }}\n\nNow generate the complete dbt schema.yml for this model."
+              "content": "=## Model: {{ $json.modelName }}\n\n### SQL Code\n```sql\n{{ $json.sqlCode }}\n```\n\n### Upstream Model Context (Lineage)\n{{ $json.upstreamContext }}\n\n### Already Documented Columns (DO NOT overwrite these)\n```json\n{{ $json.existingColumns }}\n```\n\n### Additional Context\n- Materialization: {{ $json.materialization }}\n- Target Schema: {{ $json.schema }}\n\nNow generate the complete dbt schema.yml for this model.",
+              "role": "user"
             }
           ]
         },
         "options": {
-          "maxTokens": 2048,
-          "temperature": 0.2
+          "systemMessage": "You are the Agentic dbt Librarian — an expert Senior Data Engineer and Business Analyst embedded in a Snowflake/dbt data stack.\n\nYour mission is to write documentation that BRIDGES THE GAP between raw SQL logic and business meaning. You do not write generic, technical-only descriptions. Every description must answer: \"Why does this column MATTER to the business?\"\n\n## Your Rules\n1. PRIMARY KEYS: Describe how this ID is used across the business — what it connects.\n2. FOREIGN KEYS: Explain what the join unlocks — what business question it answers.\n3. METRICS: State the exact business definition, including any edge cases (nulls, zeros, returns).\n4. DATES: Clarify the event this timestamp captures and its timezone.\n5. STATUS/FLAGS: List all possible values and their business meaning.\n6. PII COLUMNS: Flag with '[PII]' prefix and describe data sensitivity.\n\n## Output Format\nReturn ONLY a valid dbt schema.yml block. No explanations. No markdown prose. No code fences. Start directly with 'version: 2'.",
+          "temperature": 0.2,
+          "maxOutputTokens": 2048
         }
       },
       "id": "node-ai-agent",
       "name": "AI Agent — Generate schema.yml",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
       "position": [1340, 300],
       "credentials": {
-        "openAiApi": { "id": "openai-cred-id", "name": "OpenAI API" }
+        "googlePalmApi": {
+          "id": "gemini-cred-id",
+          "name": "Google Gemini(PaLM) Api"
+        }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Clean and validate the AI response\nconst aiResponse = $input.first().json.message?.content || $input.first().json.text || '';\n\n// Strip markdown code fences if present\nlet cleanYaml = aiResponse\n  .replace(/^```ya?ml\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\n// Basic validation\nconst isValid = cleanYaml.startsWith('version:') && cleanYaml.includes('models:');\n\nif (!isValid) {\n  return [{\n    json: {\n      valid: false,\n      error: 'AI response did not produce valid schema.yml format',\n      raw: aiResponse\n    }\n  }];\n}\n\n// Encode for GitHub API\nconst encoded = Buffer.from(cleanYaml).toString('base64');\n\nreturn [{\n  json: {\n    valid: true,\n    yaml: cleanYaml,\n    yamlBase64: encoded,\n    modelName: $('Build Lineage-Aware Agent Context').first().json.modelName,\n    repo: $('Build Lineage-Aware Agent Context').first().json.repo,\n    branch: $('Build Lineage-Aware Agent Context').first().json.branch,\n    filename: $('Build Lineage-Aware Agent Context').first().json.filename\n  }\n}];"
+        "jsCode": "// Clean and validate the AI response\n// Handle multiple AI response formats (Gemini, OpenAI, etc.)\nconst raw = $input.first().json;\nconst aiResponse = \n  raw.candidates?.[0]?.content?.parts?.[0]?.text ||  // Gemini format\n  raw.message?.content ||                             // OpenAI format\n  raw.text ||                                         // Generic\n  raw.content ||                                      // Fallback\n  '';\n\n// Strip markdown code fences if present\nlet cleanYaml = aiResponse\n  .replace(/^```ya?ml\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\n// Basic validation\nconst isValid = cleanYaml.startsWith('version:') && cleanYaml.includes('models:');\n\nif (!isValid) {\n  return [{\n    json: {\n      valid: false,\n      error: 'AI response did not produce valid schema.yml format',\n      raw: aiResponse\n    }\n  }];\n}\n\n// Encode for GitHub API\nconst encoded = Buffer.from(cleanYaml).toString('base64');\n\nreturn [{\n  json: {\n    valid: true,\n    yaml: cleanYaml,\n    yamlBase64: encoded,\n    modelName: $('Build Lineage-Aware Agent Context').first().json.modelName,\n    repo: $('Build Lineage-Aware Agent Context').first().json.repo,\n    branch: $('Build Lineage-Aware Agent Context').first().json.branch,\n    filename: $('Build Lineage-Aware Agent Context').first().json.filename\n  }\n}];"
       },
       "id": "node-yaml-parser",
       "name": "YAML Response Parser & Validator",
