@@ -6,3 +6,4 @@ select customer_id, first_name from {{ source('jaffle_shop', 'customers') }}
 --v5
 --v6
 --v7
+--v8
