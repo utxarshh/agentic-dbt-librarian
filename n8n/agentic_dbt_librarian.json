@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse the GitHub push event payload\nconst payload = $input.first().json;\n\n// Check if this is a \"Ping\" event from GitHub\nif (payload.zen) {\n  return [{ json: { skip: true, reason: 'GitHub Ping received successfully!' } }];\n}\n\nconst commits = payload.commits || [];\nconst sqlFiles = [];\n\nfor (const commit of commits) {\n  const allFiles = [\n    ...(commit.added || []),\n    ...(commit.modified || [])\n  ];\n  \n  for (const file of allFiles) {\n    // Catch any .sql file anywhere\n    if (file.toLowerCase().endsWith('.sql')) {\n      sqlFiles.push({\n        filename: file,\n        sha: commit.id,\n        repo: payload.repository?.full_name || '',\n        branch: payload.ref?.replace('refs/heads/', '') || 'main',\n        pusher: payload.pusher?.name || 'unknown'\n      });\n    }\n  }\n}\n\nif (sqlFiles.length === 0) {\n  return [{ \n    json: {\n      skip: true, \n      reason: 'No .sql files found in this push.',\n      payload_summary: {\n        has_commits: commits.length > 0,\n        repo: payload.repository?.full_name\n      }\n    } \n  }];\n}\n\nreturn sqlFiles.map(f => ({ json: f }));"
+        "jsCode": "// Parse the GitHub push event payload\n// n8n webhook node nests the GitHub body under .body\nconst raw = $input.first().json;\nconst payload = raw.body || raw;\n\n// Check if this is a \"Ping\" event from GitHub\nif (payload.zen) {\n  return [{ json: { skip: true, reason: 'GitHub Ping received successfully!' } }];\n}\n\nconst commits = payload.commits || [];\nconst sqlFiles = [];\n\nfor (const commit of commits) {\n  const allFiles = [\n    ...(commit.added || []),\n    ...(commit.modified || [])\n  ];\n  \n  for (const file of allFiles) {\n    if (file.toLowerCase().endsWith('.sql')) {\n      sqlFiles.push({\n        filename: file,\n        sha: commit.id,\n        repo: payload.repository?.full_name || '',\n        branch: payload.ref?.replace('refs/heads/', '') || 'main',\n        pusher: payload.pusher?.name || 'unknown'\n      });\n    }\n  }\n}\n\nif (sqlFiles.length === 0) {\n  return [{ \n    json: {\n      skip: true, \n      reason: 'No .sql files found in this push.',\n      payload_summary: {\n        has_commits: commits.length > 0,\n        repo: payload.repository?.full_name\n      }\n    } \n  }];\n}\n\nreturn sqlFiles.map(f => ({ json: f }));"
       },
       "id": "node-parse-push-event",
       "name": "Parse Push Event & Filter SQL Files",
@@ -305,8 +305,8 @@
     },
     "Skip if No SQL Files": {
       "main": [
-        [{ "node": "Fetch SQL File from GitHub", "type": "main", "index": 0 }],
-        [{ "node": "Error Response", "type": "main", "index": 0 }]
+        [{ "node": "Error Response", "type": "main", "index": 0 }],
+        [{ "node": "Fetch SQL File from GitHub", "type": "main", "index": 0 }]
       ]
     },
     "Fetch SQL File from GitHub": {
