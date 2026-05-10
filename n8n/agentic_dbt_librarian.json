@@ -44,7 +44,7 @@
     },
     {
       "parameters": {
-        "url": "=https://api.github.com/repos/{{ $json.repo }}/contents/{{ $json.filename }}?ref={{ $json.branch }}",
+        "url": "=https://api.github.com/repos/{{ $('Parse Push Event & Filter SQL Files').item.json.repo }}/contents/{{ $('Parse Push Event & Filter SQL Files').item.json.filename }}?ref={{ $('Parse Push Event & Filter SQL Files').item.json.branch }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "githubApi",
         "options": {
@@ -66,7 +66,7 @@
     },
     {
       "parameters": {
-        "url": "=https://api.github.com/repos/{{ $json.repo }}/contents/target/manifest.json?ref={{ $json.branch }}",
+        "url": "=https://api.github.com/repos/{{ $('Parse Push Event & Filter SQL Files').item.json.repo }}/contents/target/manifest.json?ref={{ $('Parse Push Event & Filter SQL Files').item.json.branch }}",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "githubApi",
         "options": {
