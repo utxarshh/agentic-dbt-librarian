@@ -103,8 +103,7 @@
         "modelId": {
           "__rl": true,
           "value": "gemini-1.5-flash",
-          "mode": "list",
-          "cachedResultName": "Gemini 1.5 Flash"
+          "mode": "id"
         },
         "messages": {
           "values": [
