@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: ""
+    columns:
+      - name: customer_id
+        description: "[PK] Unique customer identifier."
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: ""
+      - name: last_name
+        description: ""
+      - name: email
+        description: ""
+      - name: first_order_at
+        description: ""
+      - name: most_recent_order_at
+        description: ""
+      - name: number_of_orders
+        description: ""
+      - name: lifetime_value
+        description: ""
+      - name: customer_segment
+        description: ""
+
+  - name: fct_orders
+    description: "The central fact table for all order-level analytics."
+    columns:
+      - name: order_id
+        description: "[PK] Unique order identifier."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "[FK → dim_customers] The customer who placed this order."
+      - name: first_name
+        description: ""
+      - name: last_name
+        description: ""
+      - name: email
+        description: ""
+      - name: customer_segment
+        description: ""
+      - name: amount
+        description: ""
+      - name: bank_transfer_amount
+        description: ""
+      - name: coupon_amount
+        description: ""
+      - name: credit_card_amount
+        description: ""
+      - name: gift_card_amount
+        description: ""
+      - name: status
+        description: ""
+      - name: ordered_at
+        description: ""
+      - name: is_returned
+        description: ""
+      - name: net_revenue
+        description: ""

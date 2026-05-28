@@ -3,51 +3,77 @@
     "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v10/manifest.json",
     "dbt_version": "1.7.0",
     "generated_at": "2024-01-15T10:00:00.000000Z",
-    "invocation_id": "sample-invocation-id",
+    "invocation_id": "agentic-dbt-librarian-demo",
     "env": {}
   },
   "nodes": {
-    "model.jaffle_shop.stg_orders": {
-      "unique_id": "model.jaffle_shop.stg_orders",
-      "package_name": "jaffle_shop",
+    "model.agentic_dbt_librarian.stg_customers": {
+      "unique_id": "model.agentic_dbt_librarian.stg_customers",
+      "package_name": "agentic_dbt_librarian",
+      "resource_type": "model",
+      "name": "stg_customers",
+      "description": "Staged and renamed customer records from the raw CRM source. One row per customer.",
+      "original_file_path": "models/staging/stg_customers.sql",
+      "schema": "staging",
+      "database": "ANALYTICS",
+      "config": { "materialized": "view" },
+      "depends_on": { "nodes": ["source.agentic_dbt_librarian.jaffle_shop.customers"] },
+      "columns": {
+        "customer_id": { "name": "customer_id", "description": "[PK] Unique identifier for each customer account.", "data_type": "VARCHAR" },
+        "first_name":  { "name": "first_name",  "description": "[PII] Customer's legal first name.",             "data_type": "VARCHAR" },
+        "last_name":   { "name": "last_name",   "description": "[PII] Customer's legal last name.",              "data_type": "VARCHAR" },
+        "email":       { "name": "email",       "description": "[PII] Customer's primary email address.",        "data_type": "VARCHAR" },
+        "created_at":  { "name": "created_at",  "description": "UTC timestamp when account was created.",        "data_type": "TIMESTAMP" },
+        "updated_at":  { "name": "updated_at",  "description": "",                                              "data_type": "TIMESTAMP" }
+      }
+    },
+    "model.agentic_dbt_librarian.stg_orders": {
+      "unique_id": "model.agentic_dbt_librarian.stg_orders",
+      "package_name": "agentic_dbt_librarian",
       "resource_type": "model",
       "name": "stg_orders",
-      "description": "Staged orders from the raw orders source table.",
+      "description": "Staged and renamed order records. One row per order.",
       "original_file_path": "models/staging/stg_orders.sql",
       "schema": "staging",
       "database": "ANALYTICS",
       "config": { "materialized": "view" },
-      "depends_on": { "nodes": ["source.jaffle_shop.jaffle_shop.orders"] },
+      "depends_on": { "nodes": ["source.agentic_dbt_librarian.jaffle_shop.orders"] },
       "columns": {
-        "order_id": { "name": "order_id", "description": "Primary key for orders.", "data_type": "VARCHAR" },
-        "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
-        "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
-        "status": { "name": "status", "description": "", "data_type": "VARCHAR" }
+        "order_id":             { "name": "order_id",             "description": "[PK] Unique order identifier.",                    "data_type": "VARCHAR" },
+        "customer_id":          { "name": "customer_id",          "description": "[FK → stg_customers] The placing customer.",       "data_type": "VARCHAR" },
+        "amount":               { "name": "amount",               "description": "Total order amount in USD.",                       "data_type": "NUMBER(18,2)" },
+        "bank_transfer_amount": { "name": "bank_transfer_amount", "description": "",                                                 "data_type": "NUMBER(18,2)" },
+        "coupon_amount":        { "name": "coupon_amount",        "description": "",                                                 "data_type": "NUMBER(18,2)" },
+        "credit_card_amount":   { "name": "credit_card_amount",   "description": "",                                                 "data_type": "NUMBER(18,2)" },
+        "gift_card_amount":     { "name": "gift_card_amount",     "description": "",                                                 "data_type": "NUMBER(18,2)" },
+        "status":               { "name": "status",               "description": "",                                                 "data_type": "VARCHAR" },
+        "ordered_at":           { "name": "ordered_at",           "description": "UTC timestamp when the order was placed.",         "data_type": "TIMESTAMP" },
+        "updated_at":           { "name": "updated_at",           "description": "",                                                 "data_type": "TIMESTAMP" }
       }
     },
-    "model.jaffle_shop.fct_orders": {
-      "unique_id": "model.jaffle_shop.fct_orders",
-      "package_name": "jaffle_shop",
+    "model.agentic_dbt_librarian.stg_products": {
+      "unique_id": "model.agentic_dbt_librarian.stg_products",
+      "package_name": "agentic_dbt_librarian",
       "resource_type": "model",
-      "name": "fct_orders",
+      "name": "stg_products",
       "description": "",
-      "original_file_path": "models/marts/fct_orders.sql",
-      "schema": "marts",
+      "original_file_path": "models/staging/stg_products.sql",
+      "schema": "staging",
       "database": "ANALYTICS",
-      "config": { "materialized": "table" },
-      "depends_on": { "nodes": ["model.jaffle_shop.stg_orders", "model.jaffle_shop.dim_customers"] },
+      "config": { "materialized": "view" },
+      "depends_on": { "nodes": ["source.agentic_dbt_librarian.jaffle_shop.products"] },
       "columns": {
-        "order_id": { "name": "order_id", "description": "", "data_type": "VARCHAR" },
-        "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
-        "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
-        "amount": { "name": "amount", "description": "", "data_type": "NUMBER(18,2)" },
-        "status": { "name": "status", "description": "", "data_type": "VARCHAR" },
-        "is_returned": { "name": "is_returned", "description": "", "data_type": "BOOLEAN" }
+        "product_id":   { "name": "product_id",   "description": "", "data_type": "VARCHAR" },
+        "product_name": { "name": "product_name", "description": "", "data_type": "VARCHAR" },
+        "sku":          { "name": "sku",          "description": "", "data_type": "VARCHAR" },
+        "category":     { "name": "category",     "description": "", "data_type": "VARCHAR" },
+        "price":        { "name": "price",        "description": "", "data_type": "NUMBER(18,2)" },
+        "created_at":   { "name": "created_at",   "description": "", "data_type": "TIMESTAMP" }
       }
     },
-    "model.jaffle_shop.dim_customers": {
-      "unique_id": "model.jaffle_shop.dim_customers",
-      "package_name": "jaffle_shop",
+    "model.agentic_dbt_librarian.dim_customers": {
+      "unique_id": "model.agentic_dbt_librarian.dim_customers",
+      "package_name": "agentic_dbt_librarian",
       "resource_type": "model",
       "name": "dim_customers",
       "description": "",
@@ -55,36 +81,51 @@
       "schema": "marts",
       "database": "ANALYTICS",
       "config": { "materialized": "table" },
-      "depends_on": { "nodes": ["model.jaffle_shop.stg_customers"] },
+      "depends_on": { "nodes": ["model.agentic_dbt_librarian.stg_customers", "model.agentic_dbt_librarian.stg_orders"] },
       "columns": {
-        "customer_id": { "name": "customer_id", "description": "Primary key.", "data_type": "VARCHAR" },
-        "first_name": { "name": "first_name", "description": "", "data_type": "VARCHAR" },
-        "email": { "name": "email", "description": "", "data_type": "VARCHAR" },
-        "lifetime_value": { "name": "lifetime_value", "description": "", "data_type": "NUMBER(18,2)" },
-        "customer_segment": { "name": "customer_segment", "description": "", "data_type": "VARCHAR" }
+        "customer_id":          { "name": "customer_id",          "description": "[PK] Unique customer identifier.", "data_type": "VARCHAR" },
+        "first_name":           { "name": "first_name",           "description": "",                                "data_type": "VARCHAR" },
+        "last_name":            { "name": "last_name",            "description": "",                                "data_type": "VARCHAR" },
+        "email":                { "name": "email",                "description": "",                                "data_type": "VARCHAR" },
+        "first_order_at":       { "name": "first_order_at",       "description": "",                                "data_type": "TIMESTAMP" },
+        "most_recent_order_at": { "name": "most_recent_order_at", "description": "",                                "data_type": "TIMESTAMP" },
+        "number_of_orders":     { "name": "number_of_orders",     "description": "",                                "data_type": "NUMBER(18,0)" },
+        "lifetime_value":       { "name": "lifetime_value",       "description": "",                                "data_type": "NUMBER(18,2)" },
+        "customer_segment":     { "name": "customer_segment",     "description": "",                                "data_type": "VARCHAR" }
       }
     },
-    "model.jaffle_shop.stg_customers": {
-      "unique_id": "model.jaffle_shop.stg_customers",
-      "package_name": "jaffle_shop",
+    "model.agentic_dbt_librarian.fct_orders": {
+      "unique_id": "model.agentic_dbt_librarian.fct_orders",
+      "package_name": "agentic_dbt_librarian",
       "resource_type": "model",
-      "name": "stg_customers",
-      "description": "Staged customer records from raw CRM data.",
-      "original_file_path": "models/staging/stg_customers.sql",
-      "schema": "staging",
+      "name": "fct_orders",
+      "description": "The central fact table for all order-level analytics.",
+      "original_file_path": "models/marts/fct_orders.sql",
+      "schema": "marts",
       "database": "ANALYTICS",
-      "config": { "materialized": "view" },
-      "depends_on": { "nodes": [] },
+      "config": { "materialized": "table" },
+      "depends_on": { "nodes": ["model.agentic_dbt_librarian.stg_orders", "model.agentic_dbt_librarian.dim_customers"] },
       "columns": {
-        "customer_id": { "name": "customer_id", "description": "Unique customer identifier.", "data_type": "VARCHAR" },
-        "first_name": { "name": "first_name", "description": "Customer first name.", "data_type": "VARCHAR" },
-        "last_name": { "name": "last_name", "description": "Customer last name.", "data_type": "VARCHAR" },
-        "email": { "name": "email", "description": "Customer email address.", "data_type": "VARCHAR" }
+        "order_id":             { "name": "order_id",             "description": "[PK] Unique order identifier.",              "data_type": "VARCHAR" },
+        "customer_id":          { "name": "customer_id",          "description": "[FK → dim_customers] Placing customer.",     "data_type": "VARCHAR" },
+        "first_name":           { "name": "first_name",           "description": "",                                           "data_type": "VARCHAR" },
+        "last_name":            { "name": "last_name",            "description": "",                                           "data_type": "VARCHAR" },
+        "email":                { "name": "email",                "description": "",                                           "data_type": "VARCHAR" },
+        "customer_segment":     { "name": "customer_segment",     "description": "",                                           "data_type": "VARCHAR" },
+        "amount":               { "name": "amount",               "description": "",                                           "data_type": "NUMBER(18,2)" },
+        "bank_transfer_amount": { "name": "bank_transfer_amount", "description": "",                                           "data_type": "NUMBER(18,2)" },
+        "coupon_amount":        { "name": "coupon_amount",        "description": "",                                           "data_type": "NUMBER(18,2)" },
+        "credit_card_amount":   { "name": "credit_card_amount",   "description": "",                                           "data_type": "NUMBER(18,2)" },
+        "gift_card_amount":     { "name": "gift_card_amount",     "description": "",                                           "data_type": "NUMBER(18,2)" },
+        "status":               { "name": "status",               "description": "",                                           "data_type": "VARCHAR" },
+        "ordered_at":           { "name": "ordered_at",           "description": "",                                           "data_type": "TIMESTAMP" },
+        "is_returned":          { "name": "is_returned",          "description": "",                                           "data_type": "BOOLEAN" },
+        "net_revenue":          { "name": "net_revenue",          "description": "",                                           "data_type": "NUMBER(18,2)" }
       }
     },
-    "model.jaffle_shop.rpt_monthly_revenue": {
-      "unique_id": "model.jaffle_shop.rpt_monthly_revenue",
-      "package_name": "jaffle_shop",
+    "model.agentic_dbt_librarian.rpt_monthly_revenue": {
+      "unique_id": "model.agentic_dbt_librarian.rpt_monthly_revenue",
+      "package_name": "agentic_dbt_librarian",
       "resource_type": "model",
       "name": "rpt_monthly_revenue",
       "description": "",
@@ -92,13 +133,17 @@
       "schema": "reporting",
       "database": "ANALYTICS",
       "config": { "materialized": "table" },
-      "depends_on": { "nodes": ["model.jaffle_shop.fct_orders"] },
+      "depends_on": { "nodes": ["model.agentic_dbt_librarian.fct_orders"] },
       "columns": {
-        "month": { "name": "month", "description": "", "data_type": "DATE" },
-        "total_revenue": { "name": "total_revenue", "description": "", "data_type": "NUMBER(18,2)" },
-        "order_count": { "name": "order_count", "description": "", "data_type": "NUMBER(18,0)" },
-        "new_customers": { "name": "new_customers", "description": "", "data_type": "NUMBER(18,0)" },
-        "returning_customers": { "name": "returning_customers", "description": "", "data_type": "NUMBER(18,0)" }
+        "month":             { "name": "month",             "description": "", "data_type": "DATE" },
+        "order_count":       { "name": "order_count",       "description": "", "data_type": "NUMBER(18,0)" },
+        "unique_customers":  { "name": "unique_customers",  "description": "", "data_type": "NUMBER(18,0)" },
+        "total_revenue":     { "name": "total_revenue",     "description": "", "data_type": "NUMBER(18,2)" },
+        "avg_order_value":   { "name": "avg_order_value",   "description": "", "data_type": "NUMBER(18,2)" },
+        "return_count":      { "name": "return_count",      "description": "", "data_type": "NUMBER(18,0)" },
+        "returned_revenue":  { "name": "returned_revenue",  "description": "", "data_type": "NUMBER(18,2)" },
+        "net_revenue":       { "name": "net_revenue",       "description": "", "data_type": "NUMBER(18,2)" },
+        "return_rate_pct":   { "name": "return_rate_pct",   "description": "", "data_type": "NUMBER(5,2)" }
       }
     }
   },

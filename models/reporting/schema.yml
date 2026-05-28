@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: rpt_monthly_revenue
+    description: ""
+    columns:
+      - name: month
+        description: ""
+      - name: order_count
+        description: ""
+      - name: unique_customers
+        description: ""
+      - name: total_revenue
+        description: ""
+      - name: avg_order_value
+        description: ""
+      - name: return_count
+        description: ""
+      - name: returned_revenue
+        description: ""
+      - name: net_revenue
+        description: ""
+      - name: return_rate_pct
+        description: ""

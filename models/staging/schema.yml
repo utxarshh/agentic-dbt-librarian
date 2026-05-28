@@ -1,0 +1,105 @@
+version: 2
+
+sources:
+  - name: jaffle_shop
+    description: >
+      Raw operational data from the Jaffle Shop e-commerce platform,
+      loaded from the application PostgreSQL database via Fivetran.
+    schema: raw
+    tables:
+      - name: customers
+        description: "Raw customer records from the CRM."
+        columns:
+          - name: id
+            description: "CRM integer primary key for customers."
+          - name: first_name
+          - name: last_name
+          - name: email
+          - name: created_at
+          - name: updated_at
+      - name: orders
+        description: "Raw order transactions including all payment method splits."
+        columns:
+          - name: id
+          - name: user_id
+          - name: amount
+          - name: status
+          - name: created_at
+      - name: products
+        description: "Raw product catalog from the inventory system."
+
+models:
+  - name: stg_customers
+    description: >
+      Staged and renamed customer records from the raw CRM source.
+      One row per customer. Applies no deduplication — see dim_customers
+      for the final SCD-1 customer dimension.
+    columns:
+      - name: customer_id
+        description: >
+          [PK] Unique identifier for each customer account. Sourced from the
+          CRM integer PK and cast to VARCHAR for cross-system join compatibility.
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "[PII] Customer's legal first name. Masked in non-production environments."
+      - name: last_name
+        description: "[PII] Customer's legal last name. Masked in non-production environments."
+      - name: email
+        description: >
+          [PII] Customer's primary email. Used for marketing communications and
+          account login. Unique per customer. Masked in non-production.
+        tests:
+          - unique
+          - not_null
+      - name: created_at
+        description: "UTC timestamp when the customer account was created in the CRM."
+      - name: updated_at
+        description: "UTC timestamp of the most recent CRM record update."
+
+  - name: stg_orders
+    description: >
+      Staged and renamed order records. One row per order.
+      Includes all payment method breakdowns and the lifecycle status
+      at the time of last update.
+    columns:
+      - name: order_id
+        description: "[PK] Unique order identifier."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "[FK → stg_customers] The customer who placed this order."
+      - name: amount
+        description: "Total order amount in USD at the time of placement."
+      - name: bank_transfer_amount
+        description: ""
+      - name: coupon_amount
+        description: ""
+      - name: credit_card_amount
+        description: ""
+      - name: gift_card_amount
+        description: ""
+      - name: status
+        description: ""
+      - name: ordered_at
+        description: "UTC timestamp when the order was placed by the customer."
+      - name: updated_at
+        description: ""
+
+  - name: stg_products
+    description: ""
+    columns:
+      - name: product_id
+        description: ""
+      - name: product_name
+        description: ""
+      - name: sku
+        description: ""
+      - name: category
+        description: ""
+      - name: price
+        description: ""
+      - name: created_at
+        description: ""
