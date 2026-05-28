@@ -84,7 +84,8 @@
       "position": [900, 380],
       "credentials": {
         "githubApi": { "id": "github-cred-id", "name": "GitHub API" }
-      }
+      },
+      "continueOnFail": true
     },
     {
       "parameters": {
