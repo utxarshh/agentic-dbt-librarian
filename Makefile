@@ -16,10 +16,10 @@ help: ## Show this help message
 	@echo "    PORT=$(PORT)"
 
 install: ## Install Python dependencies
-	pip install -r requirements.txt
+	pip3 install -r requirements.txt
 
 audit: ## Run the Documentation Gap Finder and generate DOCS_AUDIT.md
-	python gap_finder/gap_finder.py --manifest $(MANIFEST) --output $(AUDIT_OUT)
+	python3 gap_finder/gap_finder.py --manifest $(MANIFEST) --output $(AUDIT_OUT)
 	@echo ""
 	@echo "  ✅ Audit complete. Open $(AUDIT_OUT) to view results."
 
