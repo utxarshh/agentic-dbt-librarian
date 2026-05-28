@@ -11,6 +11,8 @@ Detects undocumented models via GitHub webhook → fetches SQL + lineage context
 [![dbt](https://img.shields.io/badge/dbt-1.7%2B-orange?logo=dbt&logoColor=white)](https://docs.getdbt.com)
 [![n8n](https://img.shields.io/badge/n8n-workflow-red?logo=n8n&logoColor=white)](https://n8n.io)
 
+**[🎬 Visual Demo](demo.html)** · **[📊 Live Dashboard](dashboard.html)**
+
 </div>
 
 ---

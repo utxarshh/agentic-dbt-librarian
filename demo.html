@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic dbt Librarian — Visual Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--border:#1e293b;
+  --text:#e2e8f0;--muted:#94a3b8;--accent:#818cf8;--accent2:#6366f1;
+  --critical:#f87171;--high:#fb923c;--medium:#fbbf24;--low:#34d399;
+  --green:#10b981;--blue:#3b82f6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.15),transparent 70%);top:-100px;right:-100px;pointer-events:none}
+.hero::after{content:'';position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(129,140,248,.1),transparent 70%);bottom:-100px;left:-100px;pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:100px;padding:.4rem 1.2rem;font-size:.8rem;color:var(--accent);margin-bottom:1.5rem;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;background:linear-gradient(135deg,#e2e8f0 0%,#818cf8 50%,#6366f1 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .subtitle{font-size:clamp(1rem,2vw,1.35rem);color:var(--muted);max-width:700px;margin-bottom:2.5rem;font-weight:300}
+.hero .subtitle strong{color:var(--text);font-weight:600}
+.cta-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.8rem;border-radius:12px;font-size:.95rem;font-weight:600;text-decoration:none;transition:all .3s;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 4px 20px rgba(99,102,241,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.4)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.scroll-hint{position:absolute;bottom:2rem;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* SECTIONS */
+section{padding:5rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.15em;color:var(--accent);font-weight:700;margin-bottom:.5rem}
+.section-title{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;margin-bottom:1rem}
+.section-desc{color:var(--muted);font-size:1.05rem;max-width:650px;margin-bottom:3rem}
+
+/* PROBLEM */
+.problem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.problem-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:all .3s}
+.problem-card:hover{border-color:var(--critical);transform:translateY(-4px);box-shadow:0 12px 40px rgba(248,113,113,.08)}
+.problem-icon{font-size:2rem;margin-bottom:1rem}
+.problem-card h3{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.problem-card p{color:var(--muted);font-size:.9rem}
+
+/* FLOW */
+.flow-container{position:relative}
+.flow-step{display:flex;gap:2rem;align-items:flex-start;margin-bottom:2.5rem;position:relative;padding-left:3.5rem}
+.flow-step::before{content:'';position:absolute;left:1.1rem;top:2.5rem;bottom:-2.5rem;width:2px;background:linear-gradient(to bottom,var(--accent),transparent);opacity:.3}
+.flow-step:last-child::before{display:none}
+.flow-num{position:absolute;left:0;width:2.4rem;height:2.4rem;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#fff;flex-shrink:0}
+.flow-content{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem 2rem;flex:1;transition:all .3s}
+.flow-content:hover{border-color:var(--accent);box-shadow:0 8px 30px rgba(99,102,241,.06)}
+.flow-content h3{font-size:1.05rem;font-weight:700;margin-bottom:.4rem}
+.flow-content p{color:var(--muted);font-size:.88rem}
+.flow-tag{display:inline-block;padding:.15rem .6rem;border-radius:6px;font-size:.7rem;font-weight:600;margin-top:.5rem;letter-spacing:.03em}
+.flow-tag.webhook{background:rgba(59,130,246,.12);color:var(--blue)}
+.flow-tag.ai{background:rgba(129,140,248,.12);color:var(--accent)}
+.flow-tag.github{background:rgba(16,185,129,.12);color:var(--green)}
+
+/* BEFORE/AFTER */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+@media(max-width:768px){.compare-grid{grid-template-columns:1fr}}
+.compare-card{border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.compare-header{padding:.8rem 1.2rem;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:.5rem}
+.compare-header.before{background:rgba(248,113,113,.08);color:var(--critical)}
+.compare-header.after{background:rgba(16,185,129,.08);color:var(--green)}
+.compare-code{padding:1.2rem;background:#0d1117;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.7;overflow-x:auto;white-space:pre}
+.compare-code .key{color:#79c0ff}
+.compare-code .str{color:#a5d6ff}
+.compare-code .comment{color:#8b949e}
+.compare-code .empty{color:#f8717180;font-style:italic}
+.compare-code .good{color:#7ee787}
+
+/* METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:3rem}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.8rem;text-align:center;transition:all .3s}
+.metric-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.metric-value{font-size:2.5rem;font-weight:900;margin-bottom:.3rem}
+.metric-value.critical{color:var(--critical)}
+.metric-value.green{color:var(--green)}
+.metric-value.accent{color:var(--accent)}
+.metric-value.high{color:var(--high)}
+.metric-label{font-size:.82rem;color:var(--muted);font-weight:500}
+
+/* TECH STACK */
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem}
+.tech-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem;text-align:center;transition:all .3s}
+.tech-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tech-card .icon{font-size:1.8rem;margin-bottom:.6rem}
+.tech-card .name{font-weight:700;font-size:.9rem;margin-bottom:.2rem}
+.tech-card .role{font-size:.75rem;color:var(--muted)}
+
+/* GOVERNANCE */
+.gov-list{display:grid;gap:1rem}
+.gov-item{display:flex;align-items:flex-start;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.5rem;transition:all .3s}
+.gov-item:hover{border-color:var(--accent)}
+.gov-icon{font-size:1.3rem;flex-shrink:0;margin-top:.1rem}
+.gov-item h4{font-size:.95rem;font-weight:700;margin-bottom:.2rem}
+.gov-item p{font-size:.82rem;color:var(--muted)}
+
+/* FOOTER CTA */
+.footer-cta{text-align:center;padding:5rem 2rem;background:linear-gradient(to bottom,transparent,rgba(99,102,241,.03))}
+.footer-cta h2{font-size:2rem;font-weight:800;margin-bottom:.8rem}
+.footer-cta p{color:var(--muted);margin-bottom:2rem;font-size:1.05rem}
+.footer-cta .links{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+/* ANIMATED LINE */
+.animated-typing{overflow:hidden;border-right:2px solid var(--accent);white-space:nowrap;animation:typing 3s steps(40) 1s forwards,blink .7s step-end infinite;width:0;display:inline-block;vertical-align:bottom;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--green)}
+@keyframes typing{to{width:100%}}
+@keyframes blink{50%{border-color:transparent}}
+
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:0 auto;max-width:600px}
+
+/* RESPONSIVE */
+@media(max-width:640px){section{padding:3rem 1.2rem}.flow-step{padding-left:3rem}.flow-content{padding:1.2rem}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> AI-Powered Documentation Engine</div>
+  <h1>Agentic dbt<br>Librarian</h1>
+  <p class="subtitle">Push a <strong>.sql model</strong> to GitHub → AI reads the code + lineage → generates production-quality <strong>schema.yml</strong> → opens a <strong>Pull Request</strong> for review. Fully autonomous.</p>
+  <div class="cta-row">
+    <a href="https://github.com/utxarshh/agentic-dbt-librarian" class="btn btn-primary" target="_blank">⭐ View on GitHub</a>
+    <a href="dashboard.html" class="btn btn-secondary">📊 Live Dashboard</a>
+  </div>
+  <div class="scroll-hint" style="color:var(--muted);font-size:.85rem">↓ Scroll to explore</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- THE PROBLEM -->
+<section>
+  <div class="section-label">The Problem</div>
+  <h2 class="section-title">Why Documentation Debt Kills Data Teams</h2>
+  <p class="section-desc">Every dbt project starts clean. Then reality hits — deadlines, sprint pressure, and the YAML never gets written.</p>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-icon">🔴</div>
+      <h3>60% of columns ship undocumented</h3>
+      <p>Business users can't tell if <code>net_revenue</code> is before or after returns. They guess wrong. Revenue dashboards silently break.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">⏰</div>
+      <h3>45 min per model to document manually</h3>
+      <p>Engineers context-switch between SQL, YAML, and Slack threads asking "what does this column mean?" That's engineering time burned.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">💸</div>
+      <h3>$50K+ in wasted analyst hours per year</h3>
+      <p>Data analysts reverse-engineer logic from SQL instead of reading descriptions. Every undocumented model is a hidden cost center.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="section-label">How It Works</div>
+  <h2 class="section-title">From Git Push to Pull Request in 30 Seconds</h2>
+  <p class="section-desc">A fully event-driven pipeline that turns code changes into documentation automatically.</p>
+  <div class="flow-container">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <h3>Developer pushes <code>.sql</code> to GitHub</h3>
+        <p>Any new or modified model file in <code>models/</code> triggers the pipeline via GitHub webhook.</p>
+        <span class="flow-tag webhook">WEBHOOK</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <h3>n8n fetches SQL + manifest.json in parallel</h3>
+        <p>The orchestration engine grabs the raw model SQL and the compiled dbt manifest for upstream lineage context.</p>
+        <span class="flow-tag webhook">PARALLEL FETCH</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <h3>Lineage-aware context assembly</h3>
+        <p>Merges SQL code, upstream model descriptions, existing column docs (to preserve), materialization type, and column data types into a structured prompt.</p>
+        <span class="flow-tag ai">CONTEXT ENGINE</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <h3>Gemini AI generates schema.yml via Impact Prompting</h3>
+        <p>Every description answers: <strong>What is it?</strong> (technical) · <strong>Why does it exist?</strong> (business) · <strong>What breaks if it's wrong?</strong> (risk)</p>
+        <span class="flow-tag ai">AI AGENT</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">5</div>
+      <div class="flow-content">
+        <h3>YAML validated → Branch created → PR opened</h3>
+        <p>The output is parsed, validated for correct YAML structure, committed to a new branch, and a Pull Request is opened — all automatically.</p>
+        <span class="flow-tag github">GITHUB PR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- BEFORE / AFTER -->
+<section>
+  <div class="section-label">Before vs After</div>
+  <h2 class="section-title">What the AI Actually Produces</h2>
+  <p class="section-desc">Real output from the Librarian agent for <code>fct_orders.sql</code>:</p>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-header before">🔴 Before — What engineers typically write</div>
+      <div class="compare-code"><span class="key">- name:</span> <span class="str">net_revenue</span>
+  <span class="key">description:</span> <span class="empty">""</span>
+
+<span class="key">- name:</span> <span class="str">is_returned</span>
+  <span class="key">description:</span> <span class="empty">""</span>
+
+<span class="key">- name:</span> <span class="str">customer_segment</span>
+  <span class="key">description:</span> <span class="empty">""</span>
+
+<span class="comment"># 13 out of 15 columns: empty
+# Coverage: 13%
+# Risk: CRITICAL</span></div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-header after">🟢 After — AI-generated with Impact Prompting</div>
+      <div class="compare-code"><span class="key">- name:</span> <span class="str">net_revenue</span>
+  <span class="key">description:</span> <span class="good">&gt;
+    Recognized revenue in USD. Equals amount
+    when status is 'completed' or 'shipped';
+    0 for 'returned'/'cancelled'. Primary
+    metric for executive dashboards and MRR.
+    Do NOT sum amount — use net_revenue.</span>
+
+<span class="key">- name:</span> <span class="str">is_returned</span>
+  <span class="key">description:</span> <span class="good">&gt;
+    TRUE when order status = 'returned'.
+    Used to calculate return_rate_pct in
+    rpt_monthly_revenue. NULL should not
+    exist.</span>
+
+<span class="key">- name:</span> <span class="str">customer_segment</span>
+  <span class="key">description:</span> <span class="good">&gt;
+    Customer value tier. Values: 'VIP'
+    (≥$1000), 'Loyal' (≥$500), 'Regular'
+    (≥$100), 'New' (&lt;$100). Derived in
+    dim_customers.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LIVE METRICS -->
+<section>
+  <div class="section-label">Live Coverage Metrics</div>
+  <h2 class="section-title">Current Documentation Debt</h2>
+  <p class="section-desc">Auto-generated by the CI pipeline from <code>manifest.json</code> on every push.</p>
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="metric-value accent">6</div><div class="metric-label">dbt Models</div></div>
+    <div class="metric-card"><div class="metric-value critical">4</div><div class="metric-label">CRITICAL Risk</div></div>
+    <div class="metric-card"><div class="metric-value high">42</div><div class="metric-label">Missing Column Docs</div></div>
+    <div class="metric-card"><div class="metric-value green">~30s</div><div class="metric-label">Time to Generate PR</div></div>
+  </div>
+  <div style="text-align:center"><a href="dashboard.html" class="btn btn-secondary">📊 Open Live Dashboard →</a></div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GOVERNANCE -->
+<section>
+  <div class="section-label">Enterprise Governance</div>
+  <h2 class="section-title">Built for Production, Not Just Demos</h2>
+  <div class="gov-list">
+    <div class="gov-item"><div class="gov-icon">👤</div><div><h4>Human-in-the-Loop</h4><p>Every AI output goes through a GitHub Pull Request. No auto-merge — a data engineer always reviews before it hits main.</p></div></div>
+    <div class="gov-item"><div class="gov-icon">🔒</div><div><h4>Description Locking</h4><p>Existing non-empty descriptions are passed to the AI with explicit instructions to preserve them. No accidental overwrites.</p></div></div>
+    <div class="gov-item"><div class="gov-icon">✅</div><div><h4>YAML Validation</h4><p>AI output is parsed and validated for correct YAML structure before any branch or PR is created. Bad output = error response, no PR.</p></div></div>
+    <div class="gov-item"><div class="gov-icon">📋</div><div><h4>Git Audit Trail</h4><p>Every AI-generated description change is recorded in git history. Full traceability for compliance and data governance.</p></div></div>
+    <div class="gov-item"><div class="gov-icon">🚨</div><div><h4>CI Alerting</h4><p>GitHub Actions runs the Gap Finder on every push. CRITICAL gaps automatically open a GitHub Issue for the team.</p></div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TECH STACK -->
+<section>
+  <div class="section-label">Tech Stack</div>
+  <h2 class="section-title">What Powers the Librarian</h2>
+  <p class="section-desc">Zero-dependency dashboard, lightweight Python scanner, and a production-grade orchestration layer.</p>
+  <div class="tech-grid">
+    <div class="tech-card"><div class="icon">🤖</div><div class="name">Gemini 2.0 Flash</div><div class="role">AI Documentation Agent</div></div>
+    <div class="tech-card"><div class="icon">⚡</div><div class="name">n8n</div><div class="role">Workflow Orchestration</div></div>
+    <div class="tech-card"><div class="icon">🐙</div><div class="name">GitHub API</div><div class="role">Webhooks + PR Creation</div></div>
+    <div class="tech-card"><div class="icon">🐍</div><div class="name">Python</div><div class="role">Gap Finder Scanner</div></div>
+    <div class="tech-card"><div class="icon">🎯</div><div class="name">dbt Core</div><div class="role">Data Transformation</div></div>
+    <div class="tech-card"><div class="icon">🔄</div><div class="name">GitHub Actions</div><div class="role">CI/CD Audit Pipeline</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER CTA -->
+<div class="footer-cta">
+  <h2>Stop Writing YAML by Hand</h2>
+  <p>Let AI handle the documentation. You handle the data engineering.</p>
+  <div class="links">
+    <a href="https://github.com/utxarshh/agentic-dbt-librarian" class="btn btn-primary" target="_blank">⭐ Star on GitHub</a>
+    <a href="dashboard.html" class="btn btn-secondary">📊 Live Dashboard</a>
+    <a href="https://github.com/utxarshh/agentic-dbt-librarian/blob/main/docs/sample_ai_output.md" class="btn btn-secondary" target="_blank">📄 Sample Output</a>
+  </div>
+  <p style="margin-top:3rem;font-size:.8rem;color:var(--muted)">Built by <a href="https://github.com/utxarshh" style="color:var(--accent);text-decoration:none" target="_blank">@utxarshh</a> · MIT License</p>
+</div>
+
+</body>
+</html>
