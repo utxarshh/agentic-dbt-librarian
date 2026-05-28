@@ -102,7 +102,7 @@
         "operation": "message",
         "modelId": {
           "__rl": true,
-          "value": "models/gemini-1.5-flash",
+          "value": "models/gemini-2.0-flash",
           "mode": "id"
         },
         "messages": {
@@ -305,7 +305,10 @@
     "Skip if No SQL Files": {
       "main": [
         [{ "node": "Error Response", "type": "main", "index": 0 }],
-        [{ "node": "Fetch SQL File from GitHub", "type": "main", "index": 0 }]
+        [
+          { "node": "Fetch SQL File from GitHub", "type": "main", "index": 0 },
+          { "node": "Fetch manifest.json from GitHub", "type": "main", "index": 0 }
+        ]
       ]
     },
     "Fetch SQL File from GitHub": {

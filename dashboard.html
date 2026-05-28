@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic dbt Librarian — Coverage & Governance Dashboard</title>
+  <!-- Google Fonts: Outfit and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #080b11;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.35);
+      --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      
+      --critical: #f87171;
+      --critical-glow: rgba(248, 113, 113, 0.2);
+      --high: #fb923c;
+      --high-glow: rgba(251, 146, 60, 0.2);
+      --medium: #fbbf24;
+      --medium-glow: rgba(251, 191, 36, 0.2);
+      --low: #34d399;
+      --low-glow: rgba(52, 211, 153, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 45%);
+      background-attachment: fixed;
+      padding-bottom: 50px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 30px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 0;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-icon {
+      background: var(--accent-gradient);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .logo-text h1 {
+      font-size: 24px;
+      background: linear-gradient(to right, #ffffff, #d1d5db);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--low);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+      }
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar Panel */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    /* Cards Styling */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Coverage Gauge */
+    .gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0;
+      position: relative;
+    }
+
+    .svg-gauge {
+      width: 180px;
+      height: 180px;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.05);
+      stroke-width: 12px;
+    }
+
+    .gauge-fill {
+      fill: none;
+      stroke: url(#accentGradient);
+      stroke-width: 12px;
+      stroke-linecap: round;
+      stroke-dasharray: 502; /* 2 * PI * r (r=80) */
+      stroke-dashoffset: 502;
+      transition: stroke-dashoffset 1.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+
+    .gauge-info {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .gauge-val {
+      font-size: 38px;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #ffffff 0%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gauge-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: -2px;
+    }
+
+    /* Metric lists */
+    .metric-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .metric-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .metric-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .metric-name {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Risk Distribution list */
+    .risk-dist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .risk-dist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .risk-bar-label {
+      width: 80px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .risk-bar-container {
+      flex: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+
+    .risk-bar-fill.critical { background: var(--critical); box-shadow: 0 0 10px var(--critical-glow); }
+    .risk-bar-fill.high { background: var(--high); box-shadow: 0 0 10px var(--high-glow); }
+    .risk-bar-fill.medium { background: var(--medium); box-shadow: 0 0 10px var(--medium-glow); }
+    .risk-bar-fill.low { background: var(--low); box-shadow: 0 0 10px var(--low-glow); }
+
+    .risk-bar-count {
+      width: 25px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Main Content Area */
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px 12px 42px;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      padding: 4px;
+      border-radius: 12px;
+    }
+
+    .filter-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .filter-tab:hover {
+      color: var(--text-main);
+    }
+
+    .filter-tab.active {
+      background: var(--glass-bg);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Model Cards List */
+    .model-list-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .model-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .model-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .model-header {
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.01);
+      user-select: none;
+    }
+
+    .model-meta-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .model-badge {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .model-badge.critical { background-color: var(--critical); box-shadow: 0 0 8px var(--critical); }
+    .model-badge.high { background-color: var(--high); box-shadow: 0 0 8px var(--high); }
+    .model-badge.medium { background-color: var(--medium); box-shadow: 0 0 8px var(--medium); }
+    .model-badge.low { background-color: var(--low); box-shadow: 0 0 8px var(--low); }
+
+    .model-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .model-path {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-family: monospace;
+    }
+
+    .model-pills {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .pill.materialization {
+      color: var(--accent);
+      border-color: rgba(59, 130, 246, 0.2);
+      background: rgba(59, 130, 246, 0.03);
+    }
+
+    .pill.coverage {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .pill.risk-pill {
+      font-weight: 700;
+    }
+    
+    .pill.risk-pill.critical { color: var(--critical); border-color: rgba(248, 113, 113, 0.2); background: rgba(248, 113, 113, 0.03); }
+    .pill.risk-pill.high { color: var(--high); border-color: rgba(251, 146, 60, 0.2); background: rgba(251, 146, 60, 0.03); }
+    .pill.risk-pill.medium { color: var(--medium); border-color: rgba(251, 191, 36, 0.2); background: rgba(251, 191, 36, 0.03); }
+    .pill.risk-pill.low { color: var(--low); border-color: rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.03); }
+
+    .chevron-icon {
+      font-size: 20px;
+      color: var(--text-dim);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .model-card.expanded .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Expanded Content */
+    .model-content {
+      border-top: 1px solid var(--card-border);
+      padding: 24px;
+      display: none;
+      background: rgba(0, 0, 0, 0.1);
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .model-card.expanded .model-content {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Model Level Description status */
+    .model-description-status {
+      margin-bottom: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .model-description-status.documented {
+      background: rgba(52, 211, 153, 0.03);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      color: #a7f3d0;
+    }
+
+    .model-description-status.missing {
+      background: rgba(248, 113, 113, 0.03);
+      border: 1px solid rgba(248, 113, 113, 0.15);
+      color: #fecaca;
+    }
+
+    .status-icon {
+      font-size: 18px;
+    }
+
+    .desc-text {
+      flex: 1;
+    }
+
+    /* Columns Table */
+    .columns-table-wrapper {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-weight: 500;
+      border-bottom: 1px solid var(--card-border);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .col-name {
+      font-weight: 600;
+      font-family: monospace;
+      color: var(--text-main);
+    }
+
+    .col-type {
+      font-family: monospace;
+      color: var(--text-dim);
+    }
+
+    .col-role {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .col-description {
+      color: var(--text-muted);
+      max-width: 320px;
+      line-height: 1.4;
+    }
+
+    .col-description.empty {
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .col-risk {
+      font-weight: 700;
+      font-size: 12px;
+    }
+    
+    .col-risk.CRITICAL { color: var(--critical); }
+    .col-risk.HIGH { color: var(--high); }
+    .col-risk.MEDIUM { color: var(--medium); }
+    .col-risk.LOW { color: var(--low); }
+
+    /* Model Footer Action Panel */
+    .model-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .lineage-info {
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-action {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px var(--accent-glow);
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-action:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--accent-glow);
+    }
+
+    .btn-action:active {
+      transform: translateY(0);
+    }
+
+    /* Modal or Alert for simulated n8n trigger */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #10b981;
+      color: #ffffff;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Empty state */
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    .no-results-icon {
+      font-size: 40px;
+      margin-bottom: 15px;
+    }
+
+    .no-results h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG gradient definition for the circular gauge -->
+  <svg style="width:0; height:0; position:absolute;">
+    <defs>
+      <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3b82f6" />
+        <stop offset="100%" stop-color="#8b5cf6" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="container">
+    <header>
+      <div class="logo-section">
+        <div class="logo-icon">📚</div>
+        <div class="logo-text">
+          <h1>Agentic dbt Librarian</h1>
+          <p>Governance & Docs Coverage</p>
+        </div>
+      </div>
+      <div class="live-status">
+        <div class="pulse-dot"></div>
+        Librarian Live (n8n Connected)
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      <!-- Sidebar panel with gauges and counters -->
+      <div class="sidebar">
+        <!-- Coverage Gauge Card -->
+        <div class="card">
+          <div class="card-title">Documentation Coverage</div>
+          <div class="gauge-wrapper">
+            <svg class="svg-gauge" viewBox="0 0 180 180">
+              <circle class="gauge-track" cx="90" cy="90" r="80"></circle>
+              <circle id="coverage-gauge" class="gauge-fill" cx="90" cy="90" r="80"></circle>
+            </svg>
+            <div class="gauge-info">
+              <span id="coverage-percentage" class="gauge-val">0.0%</span>
+              <span class="gauge-label">Coverage</span>
+            </div>
+          </div>
+          
+          <div class="metric-list">
+            <div class="metric-item">
+              <span class="metric-name">Total Models</span>
+              <span id="stat-total-models" class="metric-value">0</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-name">Fully Documented</span>
+              <span id="stat-documented-models" class="metric-value">0</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-name">Models with Gaps</span>
+              <span id="stat-gap-models" class="metric-value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Distribution Card -->
+        <div class="card">
+          <div class="card-title">Risk Profile Gaps</div>
+          <div class="risk-dist-list">
+            <div class="risk-dist-item">
+              <div class="risk-bar-label">🔴 Critical</div>
+              <div class="risk-bar-container">
+                <div id="risk-bar-critical" class="risk-bar-fill critical"></div>
+              </div>
+              <div id="risk-count-critical" class="risk-bar-count">0</div>
+            </div>
+            
+            <div class="risk-dist-item">
+              <div class="risk-bar-label">🟠 High</div>
+              <div class="risk-bar-container">
+                <div id="risk-bar-high" class="risk-bar-fill high"></div>
+              </div>
+              <div id="risk-count-high" class="risk-bar-count">0</div>
+            </div>
+            
+            <div class="risk-dist-item">
+              <div class="risk-bar-label">🟡 Medium</div>
+              <div class="risk-bar-container">
+                <div id="risk-bar-medium" class="risk-bar-fill medium"></div>
+              </div>
+              <div id="risk-count-medium" class="risk-bar-count">0</div>
+            </div>
+            
+            <div class="risk-dist-item">
+              <div class="risk-bar-label">🟢 Low</div>
+              <div class="risk-bar-container">
+                <div id="risk-bar-low" class="risk-bar-fill low"></div>
+              </div>
+              <div id="risk-count-low" class="risk-bar-count">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentation Gaps Count Card -->
+        <div class="card">
+          <div class="card-title">Documentation Debt</div>
+          <div class="metric-list">
+            <div class="metric-item">
+              <span class="metric-name">Missing Model Descriptions</span>
+              <span id="stat-missing-model-desc" class="metric-value">0</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-name">Missing Column Descriptions</span>
+              <span id="stat-missing-col-desc" class="metric-value">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Panel with filter bar and list of models -->
+      <main>
+        <div class="filter-bar">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="search-input" placeholder="Search models or columns...">
+          </div>
+          
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All Models</button>
+            <button class="filter-tab" data-filter="CRITICAL">🔴 Critical</button>
+            <button class="filter-tab" data-filter="HIGH">🟠 High</button>
+            <button class="filter-tab" data-filter="gaps">Missing Docs</button>
+          </div>
+        </div>
+
+        <div class="no-results" id="no-results">
+          <div class="no-results-icon">📂</div>
+          <h3>No models found</h3>
+          <p>Try adjusting your search query or filter settings.</p>
+        </div>
+
+        <div class="model-list-wrapper" id="model-list">
+          <!-- Dynamically generated model cards will be injected here -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Action Toast Alert -->
+  <div class="toast" id="toast">
+    <span class="toast-icon">🚀</span>
+    <span class="toast-message" id="toast-message">Workflow Triggered Successfully!</span>
+  </div>
+
+  <script>
+    // Inline sample data for manifest, matches target/manifest.json exactly
+    // In case local file protocol blocks the fetch request.
+    const sampleManifest = {
+      "metadata": {
+        "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v10/manifest.json",
+        "dbt_version": "1.7.0",
+        "generated_at": "2024-01-15T10:00:00.000000Z",
+        "invocation_id": "sample-invocation-id"
+      },
+      "nodes": {
+        "model.jaffle_shop.stg_orders": {
+          "unique_id": "model.jaffle_shop.stg_orders",
+          "package_name": "jaffle_shop",
+          "resource_type": "model",
+          "name": "stg_orders",
+          "description": "Staged orders from the raw orders source table.",
+          "original_file_path": "models/staging/stg_orders.sql",
+          "schema": "staging",
+          "database": "ANALYTICS",
+          "config": { "materialized": "view" },
+          "depends_on": { "nodes": ["source.jaffle_shop.jaffle_shop.orders"] },
+          "columns": {
+            "order_id": { "name": "order_id", "description": "Primary key for orders.", "data_type": "VARCHAR" },
+            "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
+            "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
+            "status": { "name": "status", "description": "", "data_type": "VARCHAR" }
+          }
+        },
+        "model.jaffle_shop.fct_orders": {
+          "unique_id": "model.jaffle_shop.fct_orders",
+          "package_name": "jaffle_shop",
+          "resource_type": "model",
+          "name": "fct_orders",
+          "description": "",
+          "original_file_path": "models/marts/fct_orders.sql",
+          "schema": "marts",
+          "database": "ANALYTICS",
+          "config": { "materialized": "table" },
+          "depends_on": { "nodes": ["model.jaffle_shop.stg_orders", "model.jaffle_shop.dim_customers"] },
+          "columns": {
+            "order_id": { "name": "order_id", "description": "", "data_type": "VARCHAR" },
+            "customer_id": { "name": "customer_id", "description": "", "data_type": "VARCHAR" },
+            "order_date": { "name": "order_date", "description": "", "data_type": "DATE" },
+            "amount": { "name": "amount", "description": "", "data_type": "NUMBER(18,2)" },
+            "status": { "name": "status", "description": "", "data_type": "VARCHAR" },
+            "is_returned": { "name": "is_returned", "description": "", "data_type": "BOOLEAN" }
+          }
+        },
+        "model.jaffle_shop.dim_customers": {
+          "unique_id": "model.jaffle_shop.dim_customers",
+          "package_name": "jaffle_shop",
+          "resource_type": "model",
+          "name": "dim_customers",
+          "description": "",
+          "original_file_path": "models/marts/dim_customers.sql",
+          "schema": "marts",
+          "database": "ANALYTICS",
+          "config": { "materialized": "table" },
+          "depends_on": { "nodes": ["model.jaffle_shop.stg_customers"] },
+          "columns": {
+            "customer_id": { "name": "customer_id", "description": "Primary key.", "data_type": "VARCHAR" },
+            "first_name": { "name": "first_name", "description": "", "data_type": "VARCHAR" },
+            "email": { "name": "email", "description": "", "data_type": "VARCHAR" },
+            "lifetime_value": { "name": "lifetime_value", "description": "", "data_type": "NUMBER(18,2)" },
+            "customer_segment": { "name": "customer_segment", "description": "", "data_type": "VARCHAR" }
+          }
+        },
+        "model.jaffle_shop.stg_customers": {
+          "unique_id": "model.jaffle_shop.stg_customers",
+          "package_name": "jaffle_shop",
+          "resource_type": "model",
+          "name": "stg_customers",
+          "description": "Staged customer records from raw CRM data.",
+          "original_file_path": "models/staging/stg_customers.sql",
+          "schema": "staging",
+          "database": "ANALYTICS",
+          "config": { "materialized": "view" },
+          "depends_on": { "nodes": [] },
+          "columns": {
+            "customer_id": { "name": "customer_id", "description": "Unique customer identifier.", "data_type": "VARCHAR" },
+            "first_name": { "name": "first_name", "description": "Customer first name.", "data_type": "VARCHAR" },
+            "last_name": { "name": "last_name", "description": "Customer last name.", "data_type": "VARCHAR" },
+            "email": { "name": "email", "description": "Customer email address.", "data_type": "VARCHAR" }
+          }
+        },
+        "model.jaffle_shop.rpt_monthly_revenue": {
+          "unique_id": "model.jaffle_shop.rpt_monthly_revenue",
+          "package_name": "jaffle_shop",
+          "resource_type": "model",
+          "name": "rpt_monthly_revenue",
+          "description": "",
+          "original_file_path": "models/reporting/rpt_monthly_revenue.sql",
+          "schema": "reporting",
+          "database": "ANALYTICS",
+          "config": { "materialized": "table" },
+          "depends_on": { "nodes": ["model.jaffle_shop.fct_orders"] },
+          "columns": {
+            "month": { "name": "month", "description": "", "data_type": "DATE" },
+            "total_revenue": { "name": "total_revenue", "description": "", "data_type": "NUMBER(18,2)" },
+            "order_count": { "name": "order_count", "description": "", "data_type": "NUMBER(18,0)" },
+            "new_customers": { "name": "new_customers", "description": "", "data_type": "NUMBER(18,0)" },
+            "returning_customers": { "name": "returning_customers", "description": "", "data_type": "NUMBER(18,0)" }
+          }
+        }
+      }
+    };
+
+    // Risk scoring configuration matching gap_finder.py
+    const HIGH_VALUE_COLUMN_PATTERNS = [
+      "revenue", "amount", "total", "mrr", "arr", "ltv", "price",
+      "customer", "user_id", "account_id", "order_id", "transaction",
+      "churn", "conversion", "profit", "margin", "cost",
+      "pii", "email", "phone", "ssn", "address", "name",
+      "status", "state", "tier", "segment", "type"
+    ];
+
+    const MATERIALIZATION_RISK = {
+      "table": 30,
+      "incremental": 40,
+      "view": 10,
+      "ephemeral": 5
+    };
+
+    const SCHEMA_RISK_PATTERNS = {
+      "mart": 30, "marts": 30, "core": 25, "reporting": 35,
+      "analytics": 20, "staging": 5, "stg": 5, "raw": 0,
+      "intermediate": 10, "int": 10
+    };
+
+    function isLikelyPrimaryKey(colName) {
+      const lower = colName.toLowerCase();
+      return lower === "id" || lower === "pk" || 
+             (lower.endsWith("_id") && ["", "order", "customer", "user", "account", "product", "event"].some(prefix => 
+               prefix === "" ? false : lower.startsWith(prefix)
+             ));
+    }
+
+    function isLikelyForeignKey(colName, modelName) {
+      const lower = colName.toLowerCase();
+      const prefix = modelName.toLowerCase().replace("fct_", "").replace("dim_", "").replace("stg_", "");
+      return lower.endsWith("_id") && !lower.startsWith(prefix.substring(0, 4));
+    }
+
+    function scoreColumnRisk(colName, isPk, isFk) {
+      let score = 0;
+      let reasons = [];
+      const lower = colName.toLowerCase();
+
+      if (isPk) {
+        score += 40;
+        reasons.push("Primary Key");
+      }
+      if (isFk) {
+        score += 25;
+        reasons.push("Foreign Key");
+      }
+
+      for (const pattern of HIGH_VALUE_COLUMN_PATTERNS) {
+        if (lower.includes(pattern)) {
+          score += 20;
+          reasons.push(`Business keyword '${pattern}'`);
+          break;
+        }
+      }
+
+      let level = "LOW";
+      if (score >= 60) level = "CRITICAL";
+      else if (score >= 35) level = "HIGH";
+      else if (score >= 15) level = "MEDIUM";
+
+      return { level, reason: reasons.join("; ") || "Low-signal column", score };
+    }
+
+    function analyzeModel(nodeId, node) {
+      const name = node.name;
+      const desc = (node.description || "").trim();
+      const materialization = node.config?.materialized || "view";
+      const schema = node.schema || "";
+      const columns = node.columns || {};
+      
+      const totalCols = Object.keys(columns).length;
+      const documentedCols = Object.values(columns).filter(c => (c.description || "").trim()).length;
+      
+      const missingModelDesc = !desc;
+      const missingColumns = [];
+
+      for (const [colName, colData] of Object.entries(columns)) {
+        const colDesc = (colData.description || "").trim();
+        if (!colDesc) {
+          const isPk = isLikelyPrimaryKey(colName);
+          const isFk = isLikelyForeignKey(colName, name);
+          const colRisk = scoreColumnRisk(colName, isPk, isFk);
+          missingColumns.push({
+            name: colName,
+            dataType: colData.data_type || "VARCHAR",
+            isPk,
+            isFk,
+            riskLevel: colRisk.level,
+            riskReason: colRisk.reason
+          });
+        }
+      }
+
+      // Calculate model risk score
+      let score = 0;
+      if (missingModelDesc) score += 20;
+      score += MATERIALIZATION_RISK[materialization] || 10;
+
+      const schemaLower = schema.toLowerCase();
+      for (const [pattern, weight] of Object.entries(SCHEMA_RISK_PATTERNS)) {
+        if (schemaLower.includes(pattern)) {
+          score += weight;
+          break;
+        }
+      }
+
+      const missingRatio = 1 - (documentedCols / Math.max(totalCols, 1));
+      score += Math.floor(missingRatio * 30);
+
+      const hasCritical = missingColumns.some(c => c.riskLevel === "CRITICAL");
+      const hasHigh = missingColumns.some(c => c.riskLevel === "HIGH");
+      if (hasCritical) score += 20;
+      else if (hasHigh) score += 10;
+
+      score = Math.min(score, 100);
+
+      let tier = "LOW";
+      if (score >= 75) tier = "CRITICAL";
+      else if (score >= 50) tier = "HIGH";
+      else if (score >= 25) tier = "MEDIUM";
+
+      return {
+        name,
+        uniqueId: nodeId,
+        path: node.original_file_path || "",
+        schema: `${node.database || "ANALYTICS"}.${schema}`,
+        materialization,
+        dependsOn: node.depends_on?.nodes || [],
+        missingModelDesc,
+        modelDesc: node.description || "",
+        missingColumns,
+        totalCols,
+        documentedCols,
+        coveragePct: totalCols === 0 ? 100 : Math.round((documentedCols / totalCols) * 1000) / 10,
+        riskScore: score,
+        riskTier: tier
+      };
+    }
+
+    // State
+    let modelsData = [];
+    let currentFilter = "all";
+    let searchQuery = "";
+
+    // DOM Elements
+    const coverageGauge = document.getElementById("coverage-gauge");
+    const coveragePercentage = document.getElementById("coverage-percentage");
+    const statTotalModels = document.getElementById("stat-total-models");
+    const statDocumentedModels = document.getElementById("stat-documented-models");
+    const statGapModels = document.getElementById("stat-gap-models");
+    const statMissingModelDesc = document.getElementById("stat-missing-model-desc");
+    const statMissingColDesc = document.getElementById("stat-missing-col-desc");
+
+    const riskBarCritical = document.getElementById("risk-bar-critical");
+    const riskBarHigh = document.getElementById("risk-bar-high");
+    const riskBarMedium = document.getElementById("risk-bar-medium");
+    const riskBarLow = document.getElementById("risk-bar-low");
+
+    const riskCountCritical = document.getElementById("risk-count-critical");
+    const riskCountHigh = document.getElementById("risk-count-high");
+    const riskCountMedium = document.getElementById("risk-count-medium");
+    const riskCountLow = document.getElementById("risk-count-low");
+
+    const searchInput = document.getElementById("search-input");
+    const filterTabs = document.querySelectorAll(".filter-tab");
+    const modelList = document.getElementById("model-list");
+    const noResults = document.getElementById("no-results");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toast-message");
+
+    // Initialize Dashboard
+    function init(manifest) {
+      const nodes = manifest.nodes || {};
+      const modelNodes = Object.entries(nodes).filter(([id, n]) => n.resource_type === "model");
+      
+      modelsData = modelNodes.map(([id, n]) => analyzeModel(id, n));
+      // Sort: highest risk score first
+      modelsData.sort((a, b) => b.riskScore - a.riskScore);
+
+      updateSidebarMetrics(modelsData);
+      renderModelList();
+    }
+
+    function updateSidebarMetrics(models) {
+      const totalModels = models.length;
+      const gapModelsList = models.filter(m => m.missingModelDesc || m.missingColumns.length > 0);
+      const gapModels = gapModelsList.length;
+      const fullyDocumented = totalModels - gapModels;
+      
+      const missingModelDesc = models.filter(m => m.missingModelDesc).length;
+      const missingColDesc = models.reduce((acc, m) => acc + m.missingColumns.length, 0);
+
+      // Percentage coverage (fully documented / total)
+      const coverage = totalModels === 0 ? 100 : Math.round((fullyDocumented / totalModels) * 1000) / 10;
+      
+      // Update sidebar texts
+      statTotalModels.textContent = totalModels;
+      statDocumentedModels.textContent = fullyDocumented;
+      statGapModels.textContent = gapModels;
+      statMissingModelDesc.textContent = missingModelDesc;
+      statMissingColDesc.textContent = missingColDesc;
+      coveragePercentage.textContent = `${coverage}%`;
+
+      // Update Gauge SVG Circle
+      // Circumference = 502 (for radius 80)
+      const offset = 502 - (502 * coverage) / 100;
+      coverageGauge.style.strokeDashoffset = offset;
+
+      // Risk tiers
+      const criticalCount = models.filter(m => m.riskTier === "CRITICAL").length;
+      const highCount = models.filter(m => m.riskTier === "HIGH").length;
+      const mediumCount = models.filter(m => m.riskTier === "MEDIUM").length;
+      const lowCount = models.filter(m => m.riskTier === "LOW" && (m.missingModelDesc || m.missingColumns.length > 0)).length;
+
+      const maxCount = Math.max(criticalCount, highCount, mediumCount, lowCount, 1);
+      
+      riskCountCritical.textContent = criticalCount;
+      riskCountHigh.textContent = highCount;
+      riskCountMedium.textContent = mediumCount;
+      riskCountLow.textContent = lowCount;
+
+      riskBarCritical.style.width = `${(criticalCount / maxCount) * 100}%`;
+      riskBarHigh.style.width = `${(highCount / maxCount) * 100}%`;
+      riskBarMedium.style.width = `${(mediumCount / maxCount) * 100}%`;
+      riskBarLow.style.width = `${(lowCount / maxCount) * 100}%`;
+    }
+
+    function renderModelList() {
+      modelList.innerHTML = "";
+      
+      const filtered = modelsData.filter(m => {
+        // Search filter
+        const matchSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            m.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            m.missingColumns.some(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        if (!matchSearch) return false;
+
+        // Tab filter
+        if (currentFilter === "all") return true;
+        if (currentFilter === "CRITICAL") return m.riskTier === "CRITICAL";
+        if (currentFilter === "HIGH") return m.riskTier === "HIGH";
+        if (currentFilter === "gaps") return m.missingModelDesc || m.missingColumns.length > 0;
+        
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        noResults.style.display = "block";
+        return;
+      }
+      noResults.style.display = "none";
+
+      filtered.forEach(model => {
+        const card = document.createElement("div");
+        card.className = "model-card";
+        
+        const hasGaps = model.missingModelDesc || model.missingColumns.length > 0;
+        const statusBadge = `<span class="model-badge ${model.riskTier.toLowerCase()}"></span>`;
+        const coveragePill = `<span class="pill coverage">Docs: ${model.documentedCols}/${model.totalCols} (${model.coveragePct}%)</span>`;
+        const materializationPill = `<span class="pill materialization">${model.materialization}</span>`;
+        const riskPill = hasGaps ? `<span class="pill risk-pill ${model.riskTier.toLowerCase()}">${model.riskTier} Risk (${model.riskScore})</span>` : `<span class="pill risk-pill low">SECURE</span>`;
+
+        card.innerHTML = `
+          <div class="model-header" onclick="toggleCard(this)">
+            <div class="model-meta-info">
+              ${statusBadge}
+              <div>
+                <div class="model-name">${model.name}</div>
+                <div class="model-path">${model.path}</div>
+              </div>
+            </div>
+            <div class="model-pills">
+              ${materializationPill}
+              ${coveragePill}
+              ${riskPill}
+              <span class="chevron-icon">▼</span>
+            </div>
+          </div>
+          <div class="model-content">
+            <!-- Model Level Description Status -->
+            ${model.missingModelDesc ? `
+              <div class="model-description-status missing">
+                <span class="status-icon">❌</span>
+                <div class="desc-text">
+                  <strong>Missing: Model-Level Description</strong> — The table/view itself lacks documentation in schema.yml.
+                </div>
+              </div>
+            ` : `
+              <div class="model-description-status documented">
+                <span class="status-icon">✅</span>
+                <div class="desc-text">
+                  <strong>Documented:</strong> "${model.modelDesc}"
+                </div>
+              </div>
+            `}
+
+            <!-- Columns Table -->
+            <div class="columns-table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    <th>Type</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Risk</th>
+                    <th>Assessment Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.keys(sampleManifest.nodes[model.uniqueId].columns).map(colName => {
+                    const colDetails = sampleManifest.nodes[model.uniqueId].columns[colName];
+                    const isMissing = model.missingColumns.find(c => c.name === colName);
+                    
+                    let role = "📊 Metric/Attribute";
+                    const isPk = isLikelyPrimaryKey(colName);
+                    const isFk = isLikelyForeignKey(colName, model.name);
+                    if (isPk) role = "🔑 Primary Key";
+                    else if (isFk) role = "🔗 Foreign Key";
+
+                    if (isMissing) {
+                      return `
+                        <tr>
+                          <td class="col-name">${colName}</td>
+                          <td class="col-type">${isMissing.dataType}</td>
+                          <td class="col-role">${role}</td>
+                          <td>❌ Undocumented</td>
+                          <td class="col-risk ${isMissing.riskLevel}">${isMissing.riskLevel}</td>
+                          <td class="col-description empty">${isMissing.riskReason}</td>
+                        </tr>
+                      `;
+                    } else {
+                      return `
+                        <tr>
+                          <td class="col-name">${colName}</td>
+                          <td class="col-type">${colDetails.data_type || "VARCHAR"}</td>
+                          <td class="col-role">${role}</td>
+                          <td>✅ Documented</td>
+                          <td class="col-risk LOW">LOW</td>
+                          <td class="col-description">"${colDetails.description}"</td>
+                        </tr>
+                      `;
+                    }
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="model-actions">
+              <div class="lineage-info">
+                🌐 Lineage: Upstream models: <strong>${model.dependsOn.length}</strong>
+              </div>
+              <button class="btn-action" onclick="triggerWorkflow('${model.name}', event)">
+                <span>🤖 Run Librarian Agent</span>
+              </button>
+            </div>
+          </div>
+        `;
+        
+        modelList.appendChild(card);
+      });
+    }
+
+    function toggleCard(headerElement) {
+      const card = headerElement.parentElement;
+      card.classList.toggle("expanded");
+    }
+
+    function triggerWorkflow(modelName, event) {
+      event.stopPropagation();
+      
+      // Simulate n8n trigger
+      const webhookUrl = "http://localhost:5678/webhook/dbt-librarian-trigger";
+      
+      // Attempt actual webhook POST call in background
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: modelName,
+          manual_trigger: true
+        })
+      }).catch(err => {
+        console.log("n8n Triggered in demo mode:", err);
+      });
+
+      // Show toast confirmation
+      toastMessage.textContent = `Librarian Agent Triggered for '${modelName}'!`;
+      toast.classList.add("show");
+      
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3500);
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderModelList();
+    });
+
+    filterTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        filterTabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        currentFilter = tab.getAttribute("data-filter");
+        renderModelList();
+      });
+    });
+
+    // Try fetching the actual target/manifest.json on load
+    fetch('./target/manifest.json')
+      .then(response => response.json())
+      .then(data => {
+        console.log("Loaded live manifest.json");
+        init(data);
+      })
+      .catch(error => {
+        console.warn("Could not fetch target/manifest.json (standard for direct browser double-click), using sample manifest.");
+        init(sampleManifest);
+      });
+  </script>
+</body>
+</html>
